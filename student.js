@@ -5,3 +5,5 @@ class Student {
         this.id = id;
     }
 }
+
+module.exports = Student;
