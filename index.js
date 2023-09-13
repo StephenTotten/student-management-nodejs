@@ -1,9 +1,15 @@
 const fs = require('fs');
 const readline = require('readline');
 let Student = require('./Student');
+const studentList = [];
 
 function main() {
     console.log('Welcome to Student Management System');
+    loadStudentsFromFile();
+    promptUser();
+}
+
+function promptUser() {
     console.log('Press the option number to perform the action');
     console.log('1. Add student');
     console.log('2. Delete student');
@@ -11,9 +17,6 @@ function main() {
     console.log('4. Search student');
     console.log('5. Print all students');
     console.log('6. Exit');
-
-    const studentList = [];
-    loadStudentsFromFile(studentList);
 
     const rl = readline.createInterface({
         input: process.stdin,
@@ -24,25 +27,21 @@ function main() {
         switch (parseInt(choice)) {
             case 1:
                 // Add student
-                const newStudent = new Student();
                 rl.question('Enter student name: ', function (name) {
-                    newStudent.name = name;
                     rl.question('Enter student age: ', function (age) {
-                        newStudent.age = parseInt(age);
                         rl.question('Enter student id: ', function (id) {
-                            newStudent.id = parseInt(id);
-                            addStudent(studentList, newStudent);
-                            rl.close();
+                            addStudent(name, parseInt(age), parseInt(id));
+                            promptUser();
                         });
                     });
                 });
                 break;
-
+            
             case 2:
                 // Delete student
                 rl.question('Enter student name to delete: ', function (deleteName) {
                     deleteStudent(studentList, deleteName);
-                    rl.close();
+                    promptUser(); // Go back to the main prompt
                 });
                 break;
 
@@ -53,7 +52,7 @@ function main() {
                         rl.question('Enter new age: ', function (newAge) {
                             rl.question('Enter new id: ', function (newId) {
                                 updateStudent(studentList, oldName, newName, parseInt(newAge), parseInt(newId));
-                                rl.close();
+                                promptUser(); // Go back to the main prompt
                             });
                         });
                     });
@@ -71,7 +70,7 @@ function main() {
                             // Search by name
                             rl.question('Enter student name to search: ', function (searchName) {
                                 searchStudentByName(studentList, searchName);
-                                rl.close();
+                                promptUser(); // Go back to the main prompt
                             });
                             break;
 
@@ -79,13 +78,13 @@ function main() {
                             // Search by ID
                             rl.question('Enter student ID to search: ', function (searchID) {
                                 searchStudentByID(studentList, parseInt(searchID));
-                                rl.close();
+                                promptUser(); // Go back to the main prompt
                             });
                             break;
 
                         default:
                             console.log('Invalid search option. Please try again.');
-                            rl.close();
+                            promptUser(); // Go back to the main prompt
                             break;
                     }
                 });
@@ -94,7 +93,7 @@ function main() {
             case 5:
                 // Print all students
                 printStudents(studentList);
-                rl.close();
+                promptUser(); // Go back to the main prompt
                 break;
 
             case 6:
@@ -106,13 +105,13 @@ function main() {
 
             default:
                 console.log('Invalid choice. Please try again.');
-                rl.close();
+                promptUser(); // Go back to the main prompt
                 break;
         }
     });
 }
 
-function loadStudentsFromFile(studentList) {
+function loadStudentsFromFile() {
     try {
         const data = fs.readFileSync('students.txt', 'utf8');
         const lines = data.split('\n');
@@ -126,25 +125,32 @@ function loadStudentsFromFile(studentList) {
     }
 }
 
-function addStudent(studentList, newStudent) {
+function addStudent(name, age, id) {
+    const newStudent = new Student(name, age, id);
     studentList.push(newStudent);
+    saveStudentsToFile();
 }
 
-function updateStudent(studentList, oldName, newName, newAge, newId) {
+function updateStudent(oldName, newName, newAge, newId) {
     for (const student of studentList) {
         if (student.name === oldName) {
             student.name = newName;
             student.age = newAge;
             student.id = newId;
+            saveStudentsToFile();
             break;
         }
     }
 }
 
 function deleteStudent(studentList, deleteName) {
-    const index = studentList.findIndex(student => student.name === deleteName);
-    if (index !== -1) {
-        studentList.splice(index, 1);
+    const updatedStudentList = studentList.filter(student => student.name !== deleteName);
+    if (updatedStudentList.length === studentList.length) {
+        console.log('Student not found');
+    } else {
+        studentList.length = 0; // Clear the existing studentList
+        Array.prototype.push.apply(studentList, updatedStudentList); // Copy the updated list back
+        saveStudentsToFile();
     }
 }
 
@@ -154,16 +160,17 @@ function printStudents(studentList) {
     }
 }
 
-function saveStudentsToFile(studentList) {
+function saveStudentsToFile() {
     try {
         const lines = studentList.map(student => `${student.name},${student.age},${student.id}`);
         const data = lines.join('\n');
         fs.writeFileSync('students.txt', data, 'utf8');
-        console.log('Students saved to students.txt');
+        console.log('Changes saved to students.txt');
     } catch (err) {
         console.error('Error writing to file: ' + err.message);
     }
 }
+
 
 function searchStudentByName(studentList, name) {
     const foundStudent = studentList.find(student => student.name === name);
