@@ -184,7 +184,7 @@ function searchStudentByName(studentList, name) {
 function searchStudentByID(studentList, id) {
     const foundStudent = studentList.find(student => student.id === id);
     if (foundStudent) {
-        console.log(`Student found: ${foundStudent.name} ${foundStudent.age}`);
+        console.log(`Student found: ${foundStudent.name} // Age: ${foundStudent.age}`);
     } else {
         console.log('Student not found');
     }
