@@ -131,7 +131,7 @@ function addStudent(name, age, id) {
     saveStudentsToFile();
 }
 
-function updateStudent(oldName, newName, newAge, newId) {
+function updateStudent(studentList, oldName, newName, newAge, newId) {
     for (const student of studentList) {
         if (student.name === oldName) {
             student.name = newName;
