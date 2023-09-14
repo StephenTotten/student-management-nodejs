@@ -5,4 +5,3 @@ Federico,19,4
 Stephen,39,5
 Sarah,29,6
 Enrique,18,7
-Jonathan,36,8

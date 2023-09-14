@@ -111,7 +111,7 @@ async function promptUser() {
 
 async function loadStudentsFromFile() {
     try {
-        const data = await fs.readFile('students.txt', 'utf8');
+        const data = await fs.readFile('students.csv', 'utf8');
         const lines = data.split('\n');
         for (const line of lines) {
             const parts = line.split(',');
@@ -162,8 +162,8 @@ async function saveStudentsToFile() {
     try {
         const lines = studentList.map(student => `${student.name},${student.age},${student.id}`);
         const data = lines.join('\n');
-        await fs.writeFile('students.txt', data, 'utf8');
-        console.log('Changes saved to students.txt');
+        await fs.writeFile('students.csv', data, 'utf8');
+        console.log('Changes saved to students.csv');
     } catch (err) {
         console.error('Error writing to file: ' + err.message);
     }
