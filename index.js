@@ -1,15 +1,15 @@
-const fs = require('fs');
+const fs = require('fs').promises;
 const readline = require('readline');
-let Student = require('./Student');
+const Student = require('./student');
 const studentList = [];
 
-function main() {
+async function main() {
     console.log('Welcome to Student Management System');
-    loadStudentsFromFile();
-    promptUser();
+    await loadStudentsFromFile();
+    await promptUser();
 }
 
-function promptUser() {
+async function promptUser() {
     console.log('Press the option number to perform the action');
     console.log('1. Add student');
     console.log('2. Delete student');
@@ -23,103 +23,95 @@ function promptUser() {
         output: process.stdout
     });
 
-    rl.question('Enter your choice: ', function (choice) {
-        switch (parseInt(choice)) {
-            case 1:
-                // Add student
-                rl.question('Enter student name: ', function (name) {
-                    rl.question('Enter student age: ', function (age) {
-                        rl.question('Enter student id: ', function (id) {
-                            addStudent(name, parseInt(age), parseInt(id));
-                            rl.close();
-                            promptUser();
-                        });
-                    });
-                });
-                break;
-            
-            case 2:
-                // Delete student
-                rl.question('Enter student name to delete: ', function (deleteName) {
-                    deleteStudent(studentList, deleteName);
+    const choice = await askQuestion(rl, 'Enter your choice: ');
+
+    switch (parseInt(choice)) {
+        case 1:
+            // Add student
+            const name = await askQuestion(rl, 'Enter student name: ');
+            const age = parseInt(await askQuestion(rl, 'Enter student age: '));
+            const id = parseInt(await askQuestion(rl, 'Enter student id: '));
+            addStudent(name, age, id);
+            rl.close();
+            await promptUser();
+            break;
+
+        case 2:
+            // Delete student
+            const deleteName = await askQuestion(rl, 'Enter student name to delete: ');
+            deleteStudent(studentList, deleteName);
+            rl.close();
+            await promptUser();
+            break;
+
+        case 3:
+            // Update student
+            const oldName = await askQuestion(rl, 'Enter student name to update: ');
+            const newName = await askQuestion(rl, 'Enter new name: ');
+            const newAge = parseInt(await askQuestion(rl, 'Enter new age: '));
+            const newId = parseInt(await askQuestion(rl, 'Enter new id: '));
+            updateStudent(studentList, oldName, newName, newAge, newId);
+            rl.close();
+            await promptUser();
+            break;
+
+        case 4:
+            // Search student by name or ID
+            console.log('Search by:');
+            console.log('1. Name');
+            console.log('2. ID');
+            const searchOption = await askQuestion(rl, 'Enter your choice: ');
+
+            switch (parseInt(searchOption)) {
+                case 1:
+                    // Search by name
+                    const searchName = await askQuestion(rl, 'Enter student name to search: ');
+                    searchStudentByName(studentList, searchName);
                     rl.close();
-                    promptUser(); // Go back to the main prompt
-                });
-                break;
+                    await promptUser();
+                    break;
 
-            case 3:
-                // Update student
-                rl.question('Enter student name to update: ', function (oldName) {
-                    rl.question('Enter new name: ', function (newName) {
-                        rl.question('Enter new age: ', function (newAge) {
-                            rl.question('Enter new id: ', function (newId) {
-                                updateStudent(studentList, oldName, newName, parseInt(newAge), parseInt(newId));
-                                rl.close();
-                                promptUser(); // Go back to the main prompt
-                            });
-                        });
-                    });
-                });
-                break;
+                case 2:
+                    // Search by ID
+                    const searchID = parseInt(await askQuestion(rl, 'Enter student ID to search: '));
+                    searchStudentByID(studentList, searchID);
+                    rl.close();
+                    await promptUser();
+                    break;
 
-            case 4:
-                // Search student by name or ID
-                console.log('Search by:');
-                console.log('1. Name');
-                console.log('2. ID');
-                rl.question('Enter your choice: ', function (searchOption) {
-                    switch (parseInt(searchOption)) {
-                        case 1:
-                            // Search by name
-                            rl.question('Enter student name to search: ', function (searchName) {
-                                searchStudentByName(studentList, searchName);
-                                rl.close();
-                                promptUser(); // Go back to the main prompt
-                            });
-                            break;
+                default:
+                    console.log('Invalid search option. Please try again.');
+                    rl.close();
+                    await promptUser();
+                    break;
+            }
+            break;
 
-                        case 2:
-                            // Search by ID
-                            rl.question('Enter student ID to search: ', function (searchID) {
-                                searchStudentByID(studentList, parseInt(searchID));
-                                rl.close();
-                                promptUser(); // Go back to the main prompt
-                            });
-                            break;
+        case 5:
+            // Print all students
+            printStudents(studentList);
+            rl.close();
+            await promptUser();
+            break;
 
-                        default:
-                            console.log('Invalid search option. Please try again.');
-                            promptUser(); // Go back to the main prompt
-                            break;
-                    }
-                });
-                break;
+        case 6:
+            // Exit and save to file
+            await saveStudentsToFile(studentList);
+            console.log('Exiting...');
+            rl.close();
+            break;
 
-            case 5:
-                // Print all students
-                printStudents(studentList);
-                rl.close();
-                promptUser(); // Go back to the main prompt
-                break;
-
-            case 6:
-                // Exit and save to file
-                saveStudentsToFile(studentList);
-                console.log('Exiting...');
-                rl.close();
-                break;
-
-            default:
-                console.log('Invalid choice. Please try again.');
-                promptUser(); // Go back to the main prompt
-                break;
-        }
-    });
+        default:
+            console.log('Invalid choice. Please try again.');
+            rl.close();
+            await promptUser();
+            break;
+    }
 }
 
-function loadStudentsFromFile() {
+async function loadStudentsFromFile() {
     try {
-        const data = fs.readFileSync('students.txt', 'utf8');
+        const data = await fs.readFile('students.txt', 'utf8');
         const lines = data.split('\n');
         for (const line of lines) {
             const parts = line.split(',');
@@ -166,17 +158,16 @@ function printStudents(studentList) {
     }
 }
 
-function saveStudentsToFile() {
+async function saveStudentsToFile() {
     try {
         const lines = studentList.map(student => `${student.name},${student.age},${student.id}`);
         const data = lines.join('\n');
-        fs.writeFileSync('students.txt', data, 'utf8');
+        await fs.writeFile('students.txt', data, 'utf8');
         console.log('Changes saved to students.txt');
     } catch (err) {
         console.error('Error writing to file: ' + err.message);
     }
 }
-
 
 function searchStudentByName(studentList, name) {
     const foundStudent = studentList.find(student => student.name === name);
@@ -194,6 +185,12 @@ function searchStudentByID(studentList, id) {
     } else {
         console.log('Student not found');
     }
+}
+
+async function askQuestion(rl, question) {
+    return new Promise((resolve) => {
+        rl.question(question, resolve);
+    });
 }
 
 main();
