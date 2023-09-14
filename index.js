@@ -31,6 +31,7 @@ function promptUser() {
                     rl.question('Enter student age: ', function (age) {
                         rl.question('Enter student id: ', function (id) {
                             addStudent(name, parseInt(age), parseInt(id));
+                            rl.close();
                             promptUser();
                         });
                     });
@@ -41,6 +42,7 @@ function promptUser() {
                 // Delete student
                 rl.question('Enter student name to delete: ', function (deleteName) {
                     deleteStudent(studentList, deleteName);
+                    rl.close();
                     promptUser(); // Go back to the main prompt
                 });
                 break;
@@ -52,6 +54,7 @@ function promptUser() {
                         rl.question('Enter new age: ', function (newAge) {
                             rl.question('Enter new id: ', function (newId) {
                                 updateStudent(studentList, oldName, newName, parseInt(newAge), parseInt(newId));
+                                rl.close();
                                 promptUser(); // Go back to the main prompt
                             });
                         });
@@ -70,6 +73,7 @@ function promptUser() {
                             // Search by name
                             rl.question('Enter student name to search: ', function (searchName) {
                                 searchStudentByName(studentList, searchName);
+                                rl.close();
                                 promptUser(); // Go back to the main prompt
                             });
                             break;
@@ -78,6 +82,7 @@ function promptUser() {
                             // Search by ID
                             rl.question('Enter student ID to search: ', function (searchID) {
                                 searchStudentByID(studentList, parseInt(searchID));
+                                rl.close();
                                 promptUser(); // Go back to the main prompt
                             });
                             break;
@@ -93,6 +98,7 @@ function promptUser() {
             case 5:
                 // Print all students
                 printStudents(studentList);
+                rl.close();
                 promptUser(); // Go back to the main prompt
                 break;
 
